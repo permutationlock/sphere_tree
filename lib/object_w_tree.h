@@ -44,13 +44,16 @@ class Object {
 			if(dist<=s1._r+s2._r && t1._isThere){
 				if(t1._children==NULL && t2._children==NULL) { return true; }
 				for(int i=0; i<8; i++){
-					if(t1._children==NULL)
+					if(t1._children==NULL){
 						if(checkColRecursive(t1, *t2._children[i])) { return true; }
-					else if(t2._children==NULL)
+					}
+					else if(t2._children==NULL){
 						if(checkColRecursive(*t1._children[i], t2)) { return true; }
-					else
+					}
+					else{
 						for(int j=0; j<8; j++){
 							if(checkColRecursive(*t1._children[i], *t2._children[j])) { return true; }
+						}
 					}
 				}
 			}

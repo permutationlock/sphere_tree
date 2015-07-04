@@ -73,159 +73,159 @@ GLhandleARB theprog;
 //Draw all objects in the scene
 void drawObjects()
 {
-	for(int i=0; i<objects.size(); i++){
-		glPushMatrix();
-		if(drawSolid) objects[i]->draw();
-		else objects[i]->drawSphereTree();
-		glPopMatrix();
-	}
+    for(int i=0; i<objects.size(); i++){
+        glPushMatrix();
+        if(drawSolid) objects[i]->draw();
+        else objects[i]->drawSphereTree();
+        glPopMatrix();
+    }
 }
 
 //The GLUT display function
 void myDisplay()
 {
-	glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//Set up 3-D
-	glEnable(GL_DEPTH_TEST);
-	glLoadMatrixd(cammat);
+    //Set up 3-D
+    glEnable(GL_DEPTH_TEST);
+    glLoadMatrixd(cammat);
 
-	//Make light source at player position
-	glUseProgramObjectARB(theprog);
-	glColor3d(0.,0.,1.);
-	drawObjects();
+    //Make light source at player position
+    glUseProgramObjectARB(theprog);
+    glColor3d(0.,0.,1.);
+    drawObjects();
 
-	//Draw documentation
-	glUseProgramObjectARB(0);
-	glDisable(GL_DEPTH_TEST);
-	glLoadIdentity();
-	glMatrixMode(GL_PROJECTION);  //Set up simple ortho projection
-	glPushMatrix();
-	glLoadIdentity();
-	gluOrtho2D(0., double(winw), 0., double(winh));
-	glColor3d(.25,.5,.75);
-	glColor3d(0., 0., 0.);        //Black text
-	BitmapPrinter p(20., winh-20., 20.);
+    //Draw documentation
+    glUseProgramObjectARB(0);
+    glDisable(GL_DEPTH_TEST);
+    glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);  //Set up simple ortho projection
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(0., double(winw), 0., double(winh));
+    glColor3d(.25,.5,.75);
+    glColor3d(0., 0., 0.);        //Black text
+    BitmapPrinter p(20., winh-20., 20.);
 
     // Print text
-	ostringstream ostr;
-	ostr << "Sphere Tree Depth: " << sphereTreeDepth;
-	p.print(ostr.str());
-	p.print("Q, W    Decrease, increase tree depth");
-	p.print("M       Show/hide mesh");
-	p.print("P       Pause");
-	p.print("Space   Reset");
-	p.print("Esc     Exit");
-	
-	glPopMatrix();                //Restore previous projection
-	glMatrixMode(GL_MODELVIEW);
+    ostringstream ostr;
+    ostr << "Sphere Tree Depth: " << sphereTreeDepth;
+    p.print(ostr.str());
+    p.print("Q, W    Decrease, increase tree depth");
+    p.print("M       Show/hide mesh");
+    p.print("P       Pause");
+    p.print("Space   Reset");
+    p.print("Esc     Exit");
+    
+    glPopMatrix();                //Restore previous projection
+    glMatrixMode(GL_MODELVIEW);
 
-	glutSwapBuffers();
+    glutSwapBuffers();
 }
 
 //Rough calculation of how long we can wait before checking for calculations
 double getNextSampleTime(){
-	double minDist=-1.;
-	double maxVel=0.;
-	for(int i=0; i<objects.size(); i++){
-		double vel = objects[i]->getVel();
-		if(vel>maxVel) maxVel=vel;
+    double minDist=-1.;
+    double maxVel=0.;
+    for(int i=0; i<objects.size(); i++){
+        double vel = objects[i]->getVel();
+        if(vel>maxVel) maxVel=vel;
 
-		if(i==objects.size()-1) break;
-		for(int j=i+1; j<objects.size(); j++){
-			double dist=objects[i]->getDist(*objects[j]);
-			if(dist<minDist || minDist<0.)	minDist=dist;
-		}
-	}
-	return (minDist/maxVel)/2.;
+        if(i==objects.size()-1) break;
+        for(int j=i+1; j<objects.size(); j++){
+            double dist=objects[i]->getDist(*objects[j]);
+            if(dist<minDist || minDist<0.)    minDist=dist;
+        }
+    }
+    return (minDist/maxVel)/2.;
 }
 
 //Checks for objects collisions
-double checkCollisions(){
-	for(int i=0; i<objects.size()-1; i++){
-		for(int j=i+1; j<objects.size(); j++){
-			//Only check for collisions if one of the objects have moved
-			if((objects[i])->getVel() != 0. || (objects[j])->getVel() != 0){
-				if(objects[i]->checkCollision(*objects[j])){
-					if(objects[i]->_colliding == false){
-						objects[i]->_colliding = true;
-						//Have objects bounce if they are colliding for the first time
-						objects[i]->bounce(*objects[j]);
-					}
-				}
-				else objects[i]->_colliding = false;
-			}
-		}		
-	}
+void checkCollisions(){
+    for(int i=0; i<objects.size()-1; i++){
+        for(int j=i+1; j<objects.size(); j++){
+            //Only check for collisions if one of the objects have moved
+            if((objects[i])->getVel() != 0. || (objects[j])->getVel() != 0){
+                if(objects[i]->checkCollision(*objects[j])){
+                    if(objects[i]->_colliding == false){
+                        objects[i]->_colliding = true;
+                        //Have objects bounce if they are colliding for the first time
+                        objects[i]->bounce(*objects[j]);
+                    }
+                }
+                else objects[i]->_colliding = false;
+            }
+        }
+    }
 }
 
 //The GLUT idle function
 void myIdle()
 {
-	if(pause) return;
+    if(pause) return;
         //Compute elapsed time since last update
-	double currtime = glutGet(GLUT_ELAPSED_TIME) / 1000.;
-	double elapsedTime = currtime - savetime;
-	savetime = currtime;
+    double currtime = glutGet(GLUT_ELAPSED_TIME) / 1000.;
+    double elapsedTime = currtime - savetime;
+    savetime = currtime;
 
-	if(elapsedTime>.1) elapsedTime = .1;
-	
-	if(currtime>=nextSampleTime){
-		//Check for collisions between objects
-		checkCollisions();
-		nextSampleTime = getNextSampleTime();
-	}
-	
-	//Update each object
-	for(int i=0; i<objects.size(); i++)
-		objects[i]->update(elapsedTime);
+    if(elapsedTime>.1) elapsedTime = .1;
+    
+    if(currtime>=nextSampleTime){
+        //Check for collisions between objects
+        checkCollisions();
+        nextSampleTime = getNextSampleTime();
+    }
+    
+    //Update each object
+    for(int i=0; i<objects.size(); i++)
+        objects[i]->update(elapsedTime);
 
-	glutPostRedisplay();
+    glutPostRedisplay();
 }
 
 void reset(){
-	objects.clear();
+    objects.clear();
 
-	objects.push_back(new Sphere(2., 0., 8., 1.));
-	objects.push_back(new Cube(-2., 0., 8., 1., sphereTreeDepth));
+    objects.push_back(new Sphere(2., 0., 8., 1.));
+    objects.push_back(new Cube(-2., 0., 8., 1., sphereTreeDepth));
 
-	//Make one object move so we have a collision
-	(objects[0])->setVel(-1., 0., 0.);
+    //Make one object move so we have a collision
+    (objects[0])->setVel(-1., 0., 0.);
 
-	glutPostRedisplay();
+    glutPostRedisplay();
 }
 
 //The GLUT special function
 void myKeyboard(unsigned char key, int x, int y)
 {
-	switch(key){
-	case 'm':
-	case 'M': 
-		drawSolid=!drawSolid;
-		break;
-	case ' ': 
-		reset();
-		break;
-	case 27:
-		exit(0);
-		break;
-	case 'w':
-	case 'W':
-	    if(sphereTreeDepth < 4)
-		    sphereTreeDepth++;
-		break;
-	case 'q':
-	case 'Q':
-	    if(sphereTreeDepth > 0)
-		    sphereTreeDepth--;
-		break;
+    switch(key){
+    case 'm':
+    case 'M': 
+        drawSolid=!drawSolid;
+        break;
+    case ' ': 
+        reset();
+        break;
+    case 27:
+        exit(0);
+        break;
+    case 'w':
+    case 'W':
+        if(sphereTreeDepth < 4)
+            sphereTreeDepth++;
+        break;
+    case 'q':
+    case 'Q':
+        if(sphereTreeDepth > 0)
+            sphereTreeDepth--;
+        break;
 
-	case 'p':
-	case 'P':
-		pause = !pause;
-		break;
-	}
+    case 'p':
+    case 'P':
+        pause = !pause;
+        break;
+    }
 }
 
 //The GLUT reshape function
@@ -247,22 +247,22 @@ void myReshape(int w, int h)
 //Called by main after window creation
 void init()
 {
-	savetime = glutGet(GLUT_ELAPSED_TIME)/1000.;
-	nextSampleTime = savetime;
-	
-	sphereTreeDepth = 1;
+    savetime = glutGet(GLUT_ELAPSED_TIME)/1000.;
+    nextSampleTime = savetime;
+    
+    sphereTreeDepth = 1;
 
-	drawSolid = true;
-	pause = false;
+    drawSolid = true;
+    pause = false;
 
-	reset();
+    reset();
 
-	theprog = makeProgramObjectFromFiles("lib/shaders/twoside_v.glsl", "lib/shaders/twoside_f.glsl");
+    theprog = makeProgramObjectFromFiles("lib/shaders/twoside_v.glsl", "lib/shaders/twoside_f.glsl");
 
-	glLoadIdentity();
-	glTranslated(0., 0., 0.);
-	glRotated(180., 0., 1., 0.);
-	glGetDoublev(GL_MODELVIEW_MATRIX, cammat);
+    glLoadIdentity();
+    glTranslated(0., 0., 0.);
+    glRotated(180., 0., 1., 0.);
+    glGetDoublev(GL_MODELVIEW_MATRIX, cammat);
 }
 
 //Main Function
